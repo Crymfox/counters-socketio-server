@@ -23,29 +23,35 @@ type userData = {
 const users: userData[] = []
 
 io.on('connection', (socket) => {
+
+  const update = (s: string) => {
+    socket.emit(s, users)
+    socket.broadcast.emit(s, users)
+  }
+
   console.log(`a user connected: ${socket.id}`)
   // users.push({ id: socket.id, count: 0 })
   // add user to users array in the last position without using push
-  users.splice(users.length, 0, { id: socket.id, count: 2 })
+  users.splice(users.length, 0, { id: socket.id, count: 0 })
   console.log(users.length)
+  update('users_updated')
+
   socket.on('disconnect', () => {
     console.log(`user disconnected: ${socket.id}`)
     const index = users.findIndex((user) => user.id === socket.id)
     users.splice(index, 1)
     // users.pop()
     console.log(users.length)
-    socket.emit('users_updated', users)
-    socket.broadcast.emit('users_updated', users)
+    update('users_updated')
   })
-  socket.on('count change', (count) => {
-    const index = users.findIndex((user) => user.id === socket.id)
+
+  socket.on('count_change', ({count, index}) => {
+    // const index = users.findIndex((user) => user.id === socket.id)
     users[index].count = count
-    console.log(users)
-    socket.emit('users_updated', users)
-    socket.broadcast.emit('users_updated', users)
+    // console.log(users)
+    // socket.emit('count_changed', {count, index})
+    update('users_updated')
   })
-  socket.emit('users_updated', users)
-  socket.broadcast.emit('users_updated', users)
   // socket.on('disconnect', () => {
   //   console.log('user disconnected')
   // })
